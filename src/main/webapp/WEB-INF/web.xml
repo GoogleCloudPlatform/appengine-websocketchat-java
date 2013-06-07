@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2013 Google Inc. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you
+  ~ may not use this file except in compliance with the License. You may
+  ~ obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  ~ implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<web-app
+    version="2.5"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <servlet>
+    <servlet-name>startup</servlet-name>
+    <servlet-class>com.google.appengine.demos.websocketchat.servlet.StartupServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>startup</servlet-name>
+    <url-pattern>/_ah/start</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>stop</servlet-name>
+    <servlet-class>com.google.appengine.demos.websocketchat.servlet.StopServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>stop</servlet-name>
+    <url-pattern>/_ah/stop</url-pattern>
+  </servlet-mapping>
+  <filter>
+    <filter-name>ObjectifyFilter</filter-name>
+    <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>ObjectifyFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <welcome-file-list>
+    <welcome-file>chat.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>

@@ -24,13 +24,13 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.NamespaceManager;
@@ -123,12 +123,12 @@ public class ChatSocketServer extends WebSocketServer {
 
     private Map<String, Set<String>> globalParticipantsMap;
 
-    private List<Key<ChatRoomParticipants>> chatRoomParticipantsKeyList;
+    private CopyOnWriteArrayList<Key<ChatRoomParticipants>> chatRoomParticipantsKeyList;
 
     private ChatServerBridge() {
       namespace = NamespaceManager.get();
-      globalParticipantsMap = new HashMap<>();
-      chatRoomParticipantsKeyList = new ArrayList<>();
+      globalParticipantsMap = new ConcurrentHashMap<>();
+      chatRoomParticipantsKeyList = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -191,8 +191,8 @@ public class ChatSocketServer extends WebSocketServer {
         // delete participant list in the datastore
         ofy().delete().keys(chatRoomParticipantsKeyList).now();
         // initialize variables
-        globalParticipantsMap = new HashMap<>();
-        chatRoomParticipantsKeyList = new ArrayList<>();
+        globalParticipantsMap = new ConcurrentHashMap<>();
+        chatRoomParticipantsKeyList = new CopyOnWriteArrayList<>();
         chatSocketServer = null;
       } catch (IOException|InterruptedException e) {
         LOG.warning(Throwables.getStackTraceAsString(e));

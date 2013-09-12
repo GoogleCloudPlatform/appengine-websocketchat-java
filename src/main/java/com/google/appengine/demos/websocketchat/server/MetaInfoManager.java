@@ -19,7 +19,11 @@ package com.google.appengine.demos.websocketchat.server;
 import com.google.common.collect.ImmutableSet;
 import org.java_websocket.WebSocket;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A class that manages connections from the clients.
@@ -80,8 +84,8 @@ public class MetaInfoManager {
    * Creates a MetaInfoManager with the initialized map objects.
    */
   public MetaInfoManager() {
-    connectionMap = new HashMap<>();
-    participantMap = new HashMap<>();
+    connectionMap = new ConcurrentHashMap<>();
+    participantMap = new ConcurrentHashMap<>();
   }
 
   /**

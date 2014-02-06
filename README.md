@@ -1,5 +1,5 @@
 App Engine Java VM Runtime Websocket Chat
-Copyright (C) 2010-2013 Google Inc.
+Copyright (C) 2010-2014 Google Inc.
 
 ## Sample websocket chat application for use with App Engine Java VM Runtime.
 
@@ -8,10 +8,10 @@ JDK 7+ in order to run.  This application needs to be deployed to the
 [App Engine VM Runtime][1].
 
 Make sure that you are invited to the [VM Runtime Trusted Tester
-Program][2], and have downloaded the custom SDK.
+Program][2], and have [downloaded the SDK](http://commondatastorage.googleapis.com/gae-vm-runtime-tt/vmruntime_sdks.html).
 
 In order to run this application, you also need to configure the
-Compute Engine firewall to allow incoming connection to the port 65080
+Compute Engine firewall to allow incoming connections to the port 65080
 by default.
 
 Here is how to configure the Compute Engine firewall.
@@ -26,13 +26,15 @@ Here is how to configure the Compute Engine firewall.
 
 Now you're good to go!
 
-To build, run
+To build:
 
-1. Rewrie the value of the `application` element in your `appengine-web.xml`.
+1. Rewrite the value of the `application` element in your `appengine-web.xml` to your app id.
 2. Run `mvn package`
-3. Run `appcfg.sh` of the custom SDK as follows.
-    $ $CUSTOM_SDK_DIR/bin/appcfg.sh update target/websocketchat-1.0-SNAPSHOT
-4. Visit http://chat.your-app-id.appspot.com/.
+3. Run `appcfg.sh` of the SDK as follows:
+
+        $ $SDK_DIR/bin/appcfg.sh -s preview.appengine.google.com update target/websocketchat-1.0-SNAPSHOT
+
+4. Visit `http://chat.your-app-id.appspot.com/`.
 
 For further information, consult the [Java App
 Engine](https://developers.google.com/appengine/docs/java/overview)

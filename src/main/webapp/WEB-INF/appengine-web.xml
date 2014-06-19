@@ -22,6 +22,7 @@
     <vm>true</vm>
     <vm-settings>
         <setting name="machine_type" value="n1-standard-1"/>
+        <setting name="forwarded_ports" value="65080"/>
     </vm-settings>
     <manual-scaling>
         <instances>3</instances>

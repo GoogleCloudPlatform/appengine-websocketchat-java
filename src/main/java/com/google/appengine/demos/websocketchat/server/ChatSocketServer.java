@@ -41,6 +41,7 @@ import com.google.appengine.demos.websocketchat.domain.WebSocketServerNode;
 import com.google.appengine.demos.websocketchat.message.ChatMessage;
 import com.google.appengine.demos.websocketchat.message.OutgoingMessage;
 import com.google.appengine.demos.websocketchat.message.ParticipantListMessage;
+import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.Throwables;
 import com.google.gson.Gson;
 import com.googlecode.objectify.Key;
@@ -70,8 +71,6 @@ public class ChatSocketServer extends WebSocketServer {
   private final MetaInfoManager metaInfoManager;
 
   private ConcurrentLinkedQueue<String> updateAndSendParticipantListQueue;
-
-  private ConcurrentLinkedQueue<String> updateParticipantListQueue;
 
   private ConcurrentLinkedQueue<OutgoingMessage> propagateQueue;
 
@@ -121,13 +120,12 @@ public class ChatSocketServer extends WebSocketServer {
 
     private static ChatServerBridge chatServerBridge;
 
-    private Map<String, Set<String>> globalParticipantsMap;
-
     private CopyOnWriteArrayList<Key<ChatRoomParticipants>> chatRoomParticipantsKeyList;
+
+    private ApiProxy.Environment backgroundEnvironment;
 
     private ChatServerBridge() {
       namespace = NamespaceManager.get();
-      globalParticipantsMap = new ConcurrentHashMap<>();
       chatRoomParticipantsKeyList = new CopyOnWriteArrayList<>();
     }
 
@@ -155,8 +153,8 @@ public class ChatSocketServer extends WebSocketServer {
       ofy().delete().key(key).now();
     }
 
-    protected Set<String> getGlobalParticipantSet(String room) {
-      return globalParticipantsMap.get(room);
+    protected ApiProxy.Environment getBackgroundEnvironment() {
+      return backgroundEnvironment;
     }
 
     /**
@@ -191,7 +189,6 @@ public class ChatSocketServer extends WebSocketServer {
         // delete participant list in the datastore
         ofy().delete().keys(chatRoomParticipantsKeyList).now();
         // initialize variables
-        globalParticipantsMap = new ConcurrentHashMap<>();
         chatRoomParticipantsKeyList = new CopyOnWriteArrayList<>();
         chatSocketServer = null;
       } catch (IOException|InterruptedException e) {
@@ -219,20 +216,7 @@ public class ChatSocketServer extends WebSocketServer {
         Set<String> participantSet = ChatRoomParticipants.getParticipants(room);
         ParticipantListMessage participantListMessage = new ParticipantListMessage(room,
             participantSet);
-        globalParticipantsMap.put(room, participantSet);
         chatSocketServer.sendToClients(participantListMessage);
-      }
-    }
-
-    /**
-     * Pops a name of a chat room from the updateParticipantListQueue and creates the global
-     * participant list of that given chat room.
-     */
-    private void updateParticipantList() {
-      if (! chatSocketServer.updateParticipantListQueue.isEmpty()) {
-        String room = chatSocketServer.updateParticipantListQueue.remove();
-        Set<String> participantSet = ChatRoomParticipants.getParticipants(room);
-        globalParticipantsMap.put(room, participantSet);
       }
     }
 
@@ -292,13 +276,12 @@ public class ChatSocketServer extends WebSocketServer {
     /**
      * A main loop of this bridge thread.
      *
-     * <p>The chat server requests us the following 3 things.</p>
+     * <p>The chat server requests us the following 2 things.</p>
      * <ul>
      *   <li>Update and distribute the participant list in a particular chat room.</li>
-     *   <li>Aggregate the global participant list for a particular chat room.</li>
      *   <li>Propagate a message to other active server nodes.</li>
      * </ul>
-     * <p>This thread watches the 3 queue on the ChatSocketServer instance,
+     * <p>This thread watches the 2 queues on the ChatSocketServer instance,
      * and handles those requests in the main loop.</p>
      * <p>If this loop becomes the performance bottleneck, distribute these work loads into
      * multiple thread worker.</p>
@@ -310,6 +293,9 @@ public class ChatSocketServer extends WebSocketServer {
       watcherThread = Thread.currentThread();
       LOG.info("Namespace is set to " + namespace + " in thread " + watcherThread.toString());
       NamespaceManager.set(namespace);
+      // Store the environment for later use.
+      backgroundEnvironment = ApiProxy.getCurrentEnvironment();
+
       while (true) {
         if (Thread.currentThread().isInterrupted()) {
           LOG.info("ChatServerBridge is stopping.");
@@ -317,7 +303,6 @@ public class ChatSocketServer extends WebSocketServer {
         } else {
           try {
             updateParticipantListAndDistribute();
-            updateParticipantList();
             propagateOneMessage();
             Thread.sleep(100);
           } catch (InterruptedException e) {
@@ -350,7 +335,6 @@ public class ChatSocketServer extends WebSocketServer {
     super(new InetSocketAddress(port));
     metaInfoManager = new MetaInfoManager();
     updateAndSendParticipantListQueue = new ConcurrentLinkedQueue<>();
-    updateParticipantListQueue = new ConcurrentLinkedQueue<>();
     propagateQueue = new ConcurrentLinkedQueue<>();
   }
 
@@ -389,28 +373,6 @@ public class ChatSocketServer extends WebSocketServer {
     }
   }
 
-  private Set<String> getParticipants(String room) {
-    // This infinite loop is a workaround for the difficulties for accessing datastore from
-    // a thread started with a normal Thread interface rather than App Engine's ThreadManager.
-    // TODO: Find a way to enable datastore access in such threads and stop this somewhat
-    // dangerous infinite loop.
-    Set<String> participantSet = ChatServerBridge.getInstance().getGlobalParticipantSet(room);
-    if (participantSet != null) {
-      return participantSet;
-    }
-    updateParticipantListQueue.add(room);
-    while(participantSet == null) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        LOG.warning(Throwables.getStackTraceAsString(e));
-        Thread.currentThread().interrupt();
-      }
-      participantSet = ChatServerBridge.getInstance().getGlobalParticipantSet(room);
-    }
-    return participantSet;
-  }
-
   /**
    * Handles incoming messages.
    *
@@ -425,10 +387,12 @@ public class ChatSocketServer extends WebSocketServer {
   public void onMessage(WebSocket conn, String rawMessage) {
     // TODO: Make it threadsafe
     LOG.info(conn + ": " + rawMessage);
+    ApiProxy.setEnvironmentForCurrentThread(
+        ChatServerBridge.getInstance().getBackgroundEnvironment());
     ChatMessage message = GSON.fromJson(rawMessage, ChatMessage.class);
     if (message.getType().equals(OutgoingMessage.MessageType.ENTER)) {
       // Check if there's a participant with the same name in the room.
-      Set<String> participantSet = getParticipants(message.getRoom());
+      Set<String> participantSet = ChatRoomParticipants.getParticipants(message.getRoom());
       if (participantSet.contains(message.getName())) {
         // Adding a trailing underscore until the conflict resolves.
         String newName = message.getName() + "_";
@@ -474,9 +438,6 @@ public class ChatSocketServer extends WebSocketServer {
           ParticipantListMessage.class);
       if (participantListMessage.getType().equals(OutgoingMessage.MessageType.PARTICIPANTS)) {
         LOG.info("ParticipantList arrived for the room:" + message.getRoom());
-        if (! updateParticipantListQueue.contains(message.getRoom())) {
-          updateParticipantListQueue.add(message.getRoom());
-        }
       }
     }
     Collection<WebSocket> webSocketConnections = connections();

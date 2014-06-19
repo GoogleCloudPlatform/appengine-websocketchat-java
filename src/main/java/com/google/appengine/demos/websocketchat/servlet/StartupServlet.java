@@ -19,9 +19,9 @@ package com.google.appengine.demos.websocketchat.servlet;
 import com.google.appengine.api.LifecycleManager;
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.utils.SystemProperty;
-import com.google.appengine.demos.websocketchat.server.ChatSocketServer;
 import com.google.appengine.demos.websocketchat.domain.ChatRoomParticipants;
 import com.google.appengine.demos.websocketchat.domain.WebSocketServerNode;
+import com.google.appengine.demos.websocketchat.server.ChatSocketServer;
 import com.google.appengine.demos.websocketchat.server.ChatSocketServerShutdownHook;
 import com.googlecode.objectify.ObjectifyService;
 
@@ -37,15 +37,11 @@ import java.util.logging.Logger;
  */
 public class StartupServlet extends HttpServlet {
 
+  private static final Logger LOG = Logger.getLogger(StartupServlet.class.getName());
+
   static {
     ObjectifyService.register(WebSocketServerNode.class);
     ObjectifyService.register(ChatRoomParticipants.class);
-  }
-
-  private static final Logger LOG = Logger.getLogger(StartupServlet.class.getName());
-
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
     LOG.info("The startup servlet called.");
     LifecycleManager.getInstance().setShutdownHook(new ChatSocketServerShutdownHook());
     String version = SystemProperty.applicationVersion.get();
@@ -55,6 +51,10 @@ public class StartupServlet extends HttpServlet {
     ChatSocketServer.ChatServerBridge chatServerBridge =
         ChatSocketServer.ChatServerBridge.getInstance();
     chatServerBridge.start();
+  }
+
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
     response.setStatus(204);
   }
 }

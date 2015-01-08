@@ -16,18 +16,12 @@
   -->
 
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-    <application>your-app-id</application>
     <version>${appengine.app.version}</version>
     <threadsafe>true</threadsafe>
     <vm>true</vm>
-    <vm-settings>
-        <setting name="machine_type" value="n1-standard-1"/>
-        <setting name="forwarded_ports" value="65080"/>
-    </vm-settings>
-    <manual-scaling>
-        <instances>3</instances>
-    </manual-scaling>
-
+    <network>
+	<forwarded-port>65080</forwarded-port>
+    </network>
     <sessions-enabled>true</sessions-enabled>
     <precompilation-enabled>false</precompilation-enabled>
     <system-properties>

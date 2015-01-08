@@ -28,7 +28,7 @@
 
   <properties>
     <appengine.app.version>chat</appengine.app.version>
-    <appengine.target.version>1.9.6</appengine.target.version>
+    <appengine.target.version>1.9.17</appengine.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -136,7 +136,7 @@
       <plugin>
       	<groupId>com.google.appengine</groupId>
 	<artifactId>gcloud-maven-plugin</artifactId>
-      	<version>1.9.17</version>
+      	<version>${appengine.target.version}</version>
       </plugin>
 
     </plugins>

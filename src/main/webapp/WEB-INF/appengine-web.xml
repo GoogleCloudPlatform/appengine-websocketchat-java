@@ -20,7 +20,7 @@
     <threadsafe>true</threadsafe>
     <vm>true</vm>
     <network>
-	<forwarded-port>65080</forwarded-port>
+        <forwarded-port>65080</forwarded-port>
     </network>
     <sessions-enabled>true</sessions-enabled>
     <precompilation-enabled>false</precompilation-enabled>

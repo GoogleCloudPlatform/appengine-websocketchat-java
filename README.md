@@ -34,4 +34,4 @@ After setting up Maven, you can deploy your app locally, or to the Google Cloud 
 
 [1]: https://cloud.google.com/appengine/docs/java/managed-vms/
 [2]: https://cloud.google.com/appengine/docs/java/managed-vms/#install-sdk
-[3]: https://cloud.google.com/console
+[3]: https://console.developers.google.com/

@@ -3,12 +3,14 @@ Copyright (C) 2010-2014 Google Inc.
 
 ## Sample websocket chat application for use with App Engine Java VM Runtime.
 
-Requires [Apache Maven](http://maven.apache.org) 3.0 or greater, and
-JDK 7+ in order to run.  This application needs to be deployed to the
-[App Engine VM Runtime][1].
+This application builds and deploys a chat application which uses web sockets to Google App Engine [Managed VMs][1], using Maven and the gcloud SDK.
 
-Make sure that you are invited to the [VM Runtime Trusted Tester
-Program][2], and have [downloaded the SDK](http://commondatastorage.googleapis.com/gae-vm-runtime-tt/vmruntime_sdks.html).
+## Project Setup
+
+1. Create a billing enabled project and install the Google Cloud SDK as described [here][2].
+2. Install Maven 3.1 or later as described [here](https://cloud.google.com/appengine/docs/java/managed-vms/maven#requirements).
+
+### Create Firewall Exception
 
 In order to run this application, you also need to configure the
 Compute Engine firewall to allow incoming connections to the port 65080
@@ -17,7 +19,7 @@ by default.
 Here is how to configure the Compute Engine firewall.
 
 1. Go to the [cloud console][3].
-2. Select your project which is under the VM Runtime TT program.
+2. Select your project
 3. Select `Compute Engine`
 4. Click the `Network` menu then click the `default` network.
 5. Click `Create new` button in the `Firewalls` section.
@@ -26,24 +28,10 @@ Here is how to configure the Compute Engine firewall.
 
 Now you're good to go!
 
-To build:
+##Deploy
 
-1. Rewrite the value of the `application` element in your `appengine-web.xml` to your app id.
-2. Run `mvn package`
-3. Run `appcfg.sh` of the SDK as follows:
+After setting up Maven, you can deploy your app locally, or to the Google Cloud Platform as described [here](https://cloud.google.com/appengine/docs/java/managed-vms/maven#run_and_deploy_your_app_with_the_cloud_sdk_development_server), then visit `http://chat.your-app-id.appspot.com/`.
 
-        $ $SDK_DIR/bin/appcfg.sh -s preview.appengine.google.com update target/websocketchat-1.0-SNAPSHOT
-
-4. Visit `http://chat.your-app-id.appspot.com/`.
-
-For further information, consult the [Java App
-Engine](https://developers.google.com/appengine/docs/java/overview)
-documentation.
-
-To see all the available goals for the App Engine plugin, run
-
-    mvn help:describe -Dplugin=appengine
-
-[1]: https://docs.google.com/document/d/1VH1oVarfKILAF_TfvETtPPE3TFzIuWqsa22PtkRkgJ4
-[2]: https://groups.google.com/forum/?fromgroups#!topic/google-appengine/gRZNqlQPKys
-[3]: https://cloud.google.com/console
+[1]: https://cloud.google.com/appengine/docs/java/managed-vms/
+[2]: https://cloud.google.com/appengine/docs/java/managed-vms/#install-sdk
+[3]: https://console.developers.google.com/

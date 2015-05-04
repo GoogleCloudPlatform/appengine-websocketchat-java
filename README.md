@@ -14,7 +14,7 @@ by default.
 
 Here is how to configure the Compute Engine firewall.
 
-1. Go to the [cloud console][3].
+1. Go to the [cloud console][https://cloud.google.com/console].
 2. Select your Cloud project.
 3. Select `Compute Engine`
 4. Click the `Network` menu then click the `default` network.
